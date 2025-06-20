@@ -1,0 +1,746 @@
+============================
+LMS BACKEND API DOCUMENTATION
+============================
+
+Base URL: /api
+All endpoints below are prefixed with /api (e.g., /api/users/login)
+
+----------------------------
+AUTHENTICATION
+----------------------------
+- Most endpoints require an Authorization header:
+  Authorization: Bearer <JWT_TOKEN>
+- Public endpoints are marked as such.
+- OAuth (Google) login is supported via /api/auth/google.
+- Token refresh is supported via /api/auth/refresh.
+
+----------------------------
+PAGINATION
+----------------------------
+Many list endpoints support pagination using these query parameters:
+
+| Parameter | Type    | Description                        | Default | Max   |
+|-----------|---------|------------------------------------|---------|-------|
+| page      | integer | Page number (1-based)              | 1       | —     |
+| limit     | integer | Number of items per page           | 10      | 100   |
+
+Example request:
+  GET /api/courses?page=2&limit=20
+
+Example paginated response:
+{
+  "success": true,
+  "data": [ ... ],
+  "pagination": {
+    "total": 125,
+    "page": 2,
+    "limit": 20,
+    "pages": 7
+  }
+}
+
+If you omit `page` or `limit`, defaults are used. Always check the `pagination` object for total results and navigation.
+
+----------------------------
+USERS & AUTH
+----------------------------
+
+POST   /api/users/register
+- Register a new user
+- Public
+- Body: { name, email, password }
+- Success: 201 { success: true, user: { ... } }
+- Error: 400/409/422 { success: false, message }
+
+POST   /api/users/login
+- User login
+- Public
+- Body: { email, password }
+- Success: 200 { success: true, token, user }
+- Error: 401/400 { success: false, message }
+
+POST   /api/users/forgot-password
+- Request password reset
+- Public
+- Body: { email }
+- Success: 200 { success: true, message }
+- Error: 404/400 { success: false, message }
+
+POST   /api/users/reset-password
+- Reset password
+- Public
+- Body: { email, token, newPassword }
+- Success: 200 { success: true, message }
+- Error: 400/401 { success: false, message }
+
+GET    /api/users/profile
+- Get current user profile
+- Authenticated
+- Success: 200 { success: true, user }
+- Error: 401 { success: false, message }
+
+PUT    /api/users/profile
+- Update current user profile
+- Authenticated
+- Body: { ...fields }
+- Success: 200 { success: true, user }
+- Error: 400/401 { success: false, message }
+
+GET    /api/users/
+- List all users
+- Admin only
+- Query: page, limit, sort, order, search
+- Success: 200 { success: true, users: [ ... ], pagination }
+
+DELETE /api/users/:id
+- Delete user
+- Admin only
+- Path param: id (user ID)
+- Returns: { success: true, data: null, message }
+
+PUT    /api/users/:id/approve
+- Approve instructor
+- Admin only
+- Path param: id (user ID)
+- Returns: { success: true, data: {...}, message }
+
+PUT    /api/users/:id/reject
+- Reject instructor
+- Admin only
+- Path param: id (user ID)
+- Returns: { success: true, data: {...}, message }
+
+----------------------------
+COURSES
+----------------------------
+
+GET    /api/courses/
+- List all courses
+- Public
+- Query: page, limit, sort, order (pagination supported)
+- Success: 200 { success: true, courses: [ ... ], pagination }
+
+GET    /api/courses/:id
+- Get course by ID
+- Public
+- Success: 200 { success: true, course }
+
+POST   /api/courses/
+- Create course
+- Instructor only
+- Body: { title, description, ... }
+- Success: 201 { success: true, course }
+
+PUT    /api/courses/:id
+- Update course
+- Instructor only
+- Body: { ...fields }
+- Success: 200 { success: true, course }
+
+DELETE /api/courses/:id
+- Delete course
+- Instructor only
+- Success: 200 { success: true, message }
+
+PUT    /api/courses/:id/publish
+- Publish course
+- Instructor only
+- Success: 200 { success: true, message }
+
+PUT    /api/courses/:id/unpublish
+- Unpublish course
+- Instructor only
+- Success: 200 { success: true, message }
+
+GET    /api/courses/instructor/my-courses
+- List instructor's courses
+- Instructor only
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, courses: [ ... ], pagination }
+
+GET    /api/courses/:id/analytics
+- Get course analytics
+- Instructor only
+- Success: 200 { success: true, analytics }
+
+PUT    /api/courses/:id/approve
+- Approve course
+- Admin only
+- Success: 200 { success: true, message }
+
+PUT    /api/courses/:id/reject
+- Reject course
+- Admin only
+- Success: 200 { success: true, message }
+
+----------------------------
+MODULES
+----------------------------
+
+GET    /api/modules/course/:course_id
+- List modules for a course
+- Authenticated
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, modules: [ ... ], pagination }
+
+GET    /api/modules/:id
+- Get module by ID
+- Authenticated
+- Success: 200 { success: true, module }
+
+GET    /api/modules/:id/progress
+- Get module progress
+- Authenticated
+- Success: 200 { success: true, progress }
+
+POST   /api/modules/course/:course_id
+- Create module
+- Instructor only
+- Body: { title, ... }
+- Success: 201 { success: true, module }
+
+PUT    /api/modules/:id
+- Update module
+- Instructor only
+- Body: { ...fields }
+- Success: 200 { success: true, module }
+
+DELETE /api/modules/:id
+- Delete module
+- Instructor only
+- Success: 200 { success: true, message }
+
+PUT    /api/modules/course/:course_id/reorder
+- Reorder modules
+- Instructor only
+- Body: { order: [ ... ] }
+- Success: 200 { success: true, modules }
+
+POST   /api/modules/:id/duplicate
+- Duplicate module
+- Instructor only
+- Success: 201 { success: true, module }
+
+----------------------------
+LESSONS
+----------------------------
+
+GET    /api/lessons/module/:module_id
+- List lessons for a module
+- Authenticated
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, lessons: [ ... ], pagination }
+
+GET    /api/lessons/:id
+- Get lesson by ID
+- Authenticated
+- Success: 200 { success: true, lesson }
+
+POST   /api/lessons/:id/complete
+- Mark lesson complete
+- Student only
+- Success: 200 { success: true, message }
+
+DELETE /api/lessons/:id/complete
+- Mark lesson incomplete
+- Student only
+- Success: 200 { success: true, message }
+
+POST   /api/lessons/:id/view
+- Track lesson view
+- Student only
+- Body: { ... }
+- Success: 200 { success: true, message }
+
+POST   /api/lessons/module/:module_id
+- Create lesson
+- Instructor only
+- Body: { title, ... }
+- Success: 201 { success: true, lesson }
+
+PUT    /api/lessons/:id
+- Update lesson
+- Instructor only
+- Body: { ...fields }
+- Success: 200 { success: true, lesson }
+
+DELETE /api/lessons/:id
+- Delete lesson
+- Instructor only
+- Success: 200 { success: true, message }
+
+PUT    /api/lessons/module/:module_id/reorder
+- Reorder lessons
+- Instructor only
+- Body: { order: [ ... ] }
+- Success: 200 { success: true, lessons }
+
+POST   /api/lessons/:id/duplicate
+- Duplicate lesson
+- Instructor only
+- Success: 201 { success: true, lesson }
+
+----------------------------
+ASSIGNMENTS
+----------------------------
+
+POST   /api/assignments/
+- Create assignment
+- Instructor only
+- Body: { ... }
+- Success: 201 { success: true, assignment }
+
+PUT    /api/assignments/:id
+- Update assignment
+- Instructor only
+- Body: { ... }
+- Success: 200 { success: true, assignment }
+
+DELETE /api/assignments/:id
+- Delete assignment
+- Instructor only
+- Success: 200 { success: true, message }
+
+GET    /api/assignments/:id
+- Get assignment details
+- Authenticated
+- Success: 200 { success: true, assignment }
+
+GET    /api/assignments/
+- List assignments
+- Authenticated
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, assignments: [ ... ], pagination }
+
+GET    /api/assignments/:id/stats
+- Get assignment stats
+- Instructor only
+- Success: 200 { success: true, stats }
+
+POST   /api/assignments/:id/submit
+- Submit assignment
+- Student only
+- Body: { file, ... }
+- Success: 201 { success: true, submission }
+
+GET    /api/assignments/:id/submissions
+- Get submissions for assignment
+- Instructor only
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, submissions: [ ... ], pagination }
+
+GET    /api/assignments/:id/submission-status
+- Get submission status
+- Authenticated
+- Success: 200 { success: true, status }
+
+PUT    /api/assignments/submissions/:submissionId/grade
+- Grade submission
+- Instructor only
+- Body: { grade, feedback }
+- Success: 200 { success: true, submission }
+
+GET    /api/assignments/lesson/:lessonId
+- Get assignment for lesson
+- Authenticated
+- Success: 200 { success: true, assignment }
+
+----------------------------
+ASSIGNMENT SUBMISSIONS
+----------------------------
+
+POST   /api/assignment-submissions/assignments/:assignmentId/submit
+- Submit assignment
+- Student/Instructor/Admin
+- Body: { file, ... }
+- Success: 201 { success: true, submission }
+
+POST   /api/assignment-submissions/submissions/:submissionId/grade
+- Grade submission
+- Instructor/Admin
+- Body: { grade, feedback }
+- Success: 200 { success: true, submission }
+
+GET    /api/assignment-submissions/submissions/:submissionId
+- Get submission by ID
+- Authenticated
+- Success: 200 { success: true, submission }
+
+GET    /api/assignment-submissions/assignments/:assignmentId/submissions
+- Get all submissions for assignment
+- Instructor/Admin
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, submissions: [ ... ], pagination }
+
+GET    /api/assignment-submissions/assignments/:assignmentId/my-submission
+- Get student's submission for assignment
+- Authenticated
+- Success: 200 { success: true, submission }
+
+DELETE /api/assignment-submissions/submissions/:submissionId
+- Delete submission
+- Authenticated
+- Success: 200 { success: true, message }
+
+----------------------------
+ENROLLMENTS
+----------------------------
+
+POST   /api/enrollments/
+- Enroll in course
+- Student only
+- Body: { course_id }
+- Success: 201 { success: true, enrollment }
+
+GET    /api/enrollments/my-enrollments
+- Get my enrollments
+- Student only
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, enrollments: [ ... ], pagination }
+
+GET    /api/enrollments/:course_id/progress
+- Get enrollment progress
+- Student only
+- Success: 200 { success: true, progress }
+
+PUT    /api/enrollments/:course_id/progress
+- Update progress
+- Student only
+- Body: { ... }
+- Success: 200 { success: true, progress }
+
+DELETE /api/enrollments/:course_id
+- Unenroll from course
+- Student only
+- Success: 200 { success: true, message }
+
+POST   /api/enrollments/:course_id/certificate
+- Generate certificate
+- Student only
+- Success: 200 { success: true, certificate_url }
+
+GET    /api/enrollments/course/:course_id
+- Get enrollments for course
+- Instructor only
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, enrollments: [ ... ], pagination }
+
+GET    /api/enrollments/
+- Get all enrollments
+- Admin only
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, enrollments: [ ... ], pagination }
+
+GET    /api/enrollments/stats
+- Get enrollment stats
+- Admin only
+- Success: 200 { success: true, stats }
+
+GET    /api/enrollments/export
+- Export enrollments
+- Admin only
+- Success: 200 { success: true, file_url }
+
+----------------------------
+QUIZZES
+----------------------------
+
+GET    /api/quizzes/course/:courseId
+- List quizzes for a course
+- Public
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, quizzes: [ ... ], pagination }
+
+GET    /api/quizzes/:id
+- Get quiz by ID
+- Public
+- Success: 200 { success: true, quiz }
+
+POST   /api/quizzes/:id/start
+- Start quiz attempt
+- Student only
+- Success: 201 { success: true, attempt }
+
+POST   /api/quizzes/:id/submit
+- Submit quiz attempt
+- Student only
+- Body: { answers: [ ... ] }
+- Success: 200 { success: true, result }
+
+GET    /api/quizzes/:id/attempts
+- Get quiz attempts
+- Student only
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, attempts: [ ... ], pagination }
+
+POST   /api/quizzes/
+- Create quiz
+- Instructor only
+- Body: { ... }
+- Success: 201 { success: true, quiz }
+
+PUT    /api/quizzes/:id
+- Update quiz
+- Instructor only
+- Body: { ... }
+- Success: 200 { success: true, quiz }
+
+DELETE /api/quizzes/:id
+- Delete quiz
+- Instructor only
+- Success: 200 { success: true, message }
+
+POST   /api/quizzes/:id/questions
+- Add question
+- Instructor only
+- Body: { ... }
+- Success: 201 { success: true, question }
+
+PUT    /api/quizzes/:id/questions/:questionId
+- Update question
+- Instructor only
+- Body: { ... }
+- Success: 200 { success: true, question }
+
+DELETE /api/quizzes/:id/questions/:questionId
+- Delete question
+- Instructor only
+- Success: 200 { success: true, message }
+
+GET    /api/quizzes/:id/results
+- Get quiz results
+- Instructor only
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, results: [ ... ], pagination }
+
+GET    /api/quizzes/:id/analytics
+- Get quiz analytics
+- Instructor only
+- Success: 200 { success: true, analytics }
+
+POST   /api/quizzes/:id/export
+- Export quiz results
+- Instructor only
+- Success: 200 { success: true, file_url }
+
+----------------------------
+QUIZ ATTEMPTS
+----------------------------
+
+POST   /api/quiz-attempts/quizzes/:quizId/attempts
+- Start quiz attempt
+- Student/Instructor/Admin
+- Success: 201 { success: true, attempt }
+
+POST   /api/quiz-attempts/attempts/:attemptId/responses
+- Submit quiz response
+- Student/Instructor/Admin
+- Body: { answers: [ ... ] }
+- Success: 200 { success: true, response }
+
+POST   /api/quiz-attempts/attempts/:attemptId/complete
+- Complete quiz attempt
+- Student/Instructor/Admin
+- Success: 200 { success: true, result }
+
+GET    /api/quiz-attempts/attempts/:attemptId
+- Get attempt details
+- Authenticated
+- Success: 200 { success: true, attempt }
+
+GET    /api/quiz-attempts/quizzes/:quizId/attempts
+- Get user's attempts for quiz
+- Authenticated
+- Query: page, limit (pagination supported)
+- Success: 200 { success: true, attempts: [ ... ], pagination }
+
+GET    /api/quiz-attempts/quizzes/:quizId/statistics
+- Get quiz statistics
+- Instructor/Admin
+- Success: 200 { success: true, statistics }
+
+GET    /api/quiz-attempts/quizzes/:quizId/best-attempt
+- Get user's best attempt
+- Authenticated
+- Success: 200 { success: true, attempt }
+
+----------------------------
+ANALYTICS
+----------------------------
+
+GET    /api/analytics/instructor/dashboard
+- Get instructor dashboard analytics
+- Instructor/Admin
+- Query: { ... }
+- Success: 200 { success: true, data }
+
+GET    /api/analytics/admin/dashboard
+- Get admin dashboard analytics
+- Admin only
+- Query: { ... }
+- Success: 200 { success: true, data }
+
+GET    /api/analytics/admin/metrics
+- Get admin metrics
+- Admin only
+- Query: { ... }
+- Success: 200 { success: true, data }
+
+GET    /api/analytics/courses/:courseId/stats
+- Get course statistics
+- Instructor/Admin
+- Success: 200 { success: true, stats }
+
+GET    /api/analytics/courses/:courseId/students
+- Get course student performance
+- Instructor/Admin
+- Success: 200 { success: true, students }
+
+GET    /api/analytics/students/top
+- Get top students
+- Instructor/Admin
+- Query: { ... }
+- Success: 200 { success: true, students }
+
+GET    /api/analytics/students/:studentId/performance
+- Get student performance
+- Instructor/Admin
+- Success: 200 { success: true, performance }
+
+GET    /api/analytics/engagement/weekly
+- Get weekly engagement trends
+- Instructor/Admin
+- Success: 200 { success: true, trends }
+
+GET    /api/analytics/trends/enrollment
+- Get enrollment trends
+- Instructor/Admin
+- Success: 200 { success: true, trends }
+
+GET    /api/analytics/lessons/completion-heatmap
+- Get lesson completion heatmap
+- Instructor/Admin
+- Success: 200 { success: true, heatmap }
+
+GET    /api/analytics/assessments/stats
+- Get assessment stats
+- Instructor/Admin
+- Success: 200 { success: true, stats }
+
+GET    /api/analytics/users/:userId/activity
+- Get user activity summary
+- Instructor/Admin
+- Success: 200 { success: true, activity }
+
+GET    /api/analytics/export
+- Export analytics data
+- Instructor/Admin
+- Query: { type, format, ... }
+- Success: 200 { success: true, file_url }
+
+GET    /api/analytics/realtime/dashboard
+- Get real-time dashboard data
+- Instructor/Admin
+- Success: 200 { success: true, data }
+
+GET    /api/analytics/my/performance
+- Get my performance (student)
+- Student/Instructor/Admin
+- Success: 200 { success: true, performance }
+
+GET    /api/analytics/my/activity
+- Get my activity (student)
+- Student/Instructor/Admin
+- Success: 200 { success: true, activity }
+
+GET    /api/analytics/admin/reports/courses
+- Get courses report
+- Admin only
+- Query: { ... }
+- Success: 200 { success: true, report }
+
+GET    /api/analytics/instructor/:instructorId/reports/students
+- Get instructor's students report
+- Admin only
+- Success: 200 { success: true, report }
+
+GET    /api/analytics/reports/grades
+- Get grades report
+- Instructor/Admin
+- Success: 200 { success: true, report }
+
+GET    /api/analytics/admin/system/health
+- Get system health
+- Admin only
+- Success: 200 { success: true, health }
+
+----------------------------
+RESPONSE FORMAT (GENERAL)
+----------------------------
+
+Success:
+{
+  success: true,
+  ...data,
+  [pagination: { total, page, limit, pages }]
+}
+
+Error:
+{
+  success: false,
+  message: "Error message",
+  [code]: "OPTIONAL_ERROR_CODE"
+}
+
+----------------------------
+NOTES FOR FRONTEND DEVELOPERS
+----------------------------
+- All endpoints require the Authorization header with a Bearer token unless marked as Public.
+- All POST/PUT requests with a body must use Content-Type: application/json unless uploading files (then use multipart/form-data).
+- All error responses are JSON and include a message field.
+- Rate limits may apply to some endpoints (see backend for details).
+- For file uploads, use the 'file' field in multipart/form-data.
+- For paginated endpoints, use ?page= and ?limit= query parameters if supported.
+- Always check the 'success' field in the response to determine if the request was successful.
+- If you need more details on any endpoint, ask the backend team for the latest contract or example.
+
+----------------------------
+AUTHENTICATION FLOWS
+----------------------------
+- Most endpoints require an Authorization header:
+  Authorization: Bearer <JWT_TOKEN>
+- Public endpoints are marked as such.
+- OAuth (Google) login is supported via /api/auth/google.
+- Token refresh is supported via /api/auth/refresh.
+
+----------------------------
+OAUTH & TOKEN REFRESH
+----------------------------
+
+GET    /api/auth/google
+- Initiate Google OAuth login
+- Public
+- Redirects user to Google for authentication
+- On success, Google redirects to /api/auth/google/callback
+
+GET    /api/auth/google/callback
+- Google OAuth callback endpoint
+- Public
+- Handles Google response, issues JWT access token
+- Success: 200 { success: true, user, token }
+- Error: 401 { success: false, message }
+
+POST   /api/auth/refresh
+- Refresh JWT access token
+- Public
+- Body: { refreshToken }
+- Success: 200 { success: true, user, token }
+- Error: 401 { success: false, message }
+
+Notes:
+- For OAuth, the frontend should open /api/auth/google, handle the callback, and store the returned token.
+- For token refresh, send the refresh token in the body to /api/auth/refresh to get a new access token.
+
+----------------------------
+END OF API DOCUMENTATION
+---------------------------- 
