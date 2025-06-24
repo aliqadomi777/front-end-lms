@@ -1,3 +1,148 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 210 90% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-50: 210 90% 98%;
+    --primary-100: 210 90% 94%;
+    --primary-500: 210 90% 60%;
+    --primary-600: 210 90% 54%;
+    --primary-700: 210 90% 48%;
+    --secondary: 48 100% 96%;
+    --secondary-foreground: 220 15% 15%;
+    --muted: 210 16% 92%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 38 100% 90%;
+    --accent-foreground: 220 15% 15%;
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 16% 85%;
+    --input: 210 16% 85%;
+    --ring: 210 90% 60%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 210 90% 60%;
+    --sidebar-primary: 210 90% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 100% 90%;
+    --sidebar-accent-foreground: 220 15% 15%;
+    --sidebar-border: 210 16% 85%;
+    --sidebar-ring: 210 90% 60%;
+    --learnsphere-blue: 210 90% 60%;
+    --learnsphere-yellow: 48 100% 60%;
+    --learnsphere-green: 142 70% 45%;
+    --learnsphere-orange: 28 100% 60%;
+    --learnsphere-purple: 265 80% 60%;
+  }
+  .dark {
+    --background: 0 0% 100%;
+    --foreground: 220 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 210 90% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-50: 210 90% 98%;
+    --primary-100: 210 90% 94%;
+    --primary-500: 210 90% 60%;
+    --primary-600: 210 90% 54%;
+    --primary-700: 210 90% 48%;
+    --secondary: 48 100% 96%;
+    --secondary-foreground: 220 15% 15%;
+    --muted: 210 16% 92%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 38 100% 90%;
+    --accent-foreground: 220 15% 15%;
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 16% 85%;
+    --input: 210 16% 85%;
+    --ring: 210 90% 60%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 210 90% 60%;
+    --sidebar-primary: 210 90% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 100% 90%;
+    --sidebar-accent-foreground: 220 15% 15%;
+    --sidebar-border: 210 16% 85%;
+    --sidebar-ring: 210 90% 60%;
+    --learnsphere-blue: 210 90% 60%;
+    --learnsphere-yellow: 48 100% 60%;
+    --learnsphere-green: 142 70% 45%;
+    --learnsphere-orange: 28 100% 60%;
+    --learnsphere-purple: 265 80% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    font-family: 'Montserrat', 'Inter', Arial, sans-serif;
+    letter-spacing: 0.01em;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background: linear-gradient(135deg, hsl(var(--primary-50)), hsl(var(--accent)), hsl(var(--secondary)) 90%);
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+    color: hsl(var(--primary-700));
+    letter-spacing: 0.02em;
+  }
+  h1 {
+    @apply text-5xl font-extrabold;
+    color: hsl(var(--learnsphere-blue));
+  }
+  h2 {
+    @apply text-3xl;
+    color: hsl(var(--learnsphere-yellow));
+  }
+  h3 {
+    @apply text-2xl;
+    color: hsl(var(--learnsphere-green));
+  }
+  h4 {
+    @apply text-xl;
+    color: hsl(var(--learnsphere-orange));
+  }
+  a {
+    color: hsl(var(--primary-600));
+    text-decoration: underline;
+    transition: color 0.2s;
+  }
+  a:hover {
+    color: hsl(var(--learnsphere-purple));
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    @apply bg-gradient-to-br from-primary-50 via-white to-learnsphere-yellow;
+  }
+  .glass-effect {
+    @apply bg-white/90 backdrop-blur-md border border-learnsphere-blue/20 shadow-xl;
+  }
+  .hover-lift {
+    @apply transition-transform duration-200 hover:scale-105 hover:shadow-2xl;
+  }
+  .learnsphere-btn {
+    @apply px-6 py-2 rounded-lg font-semibold bg-learnsphere-blue text-white shadow hover:bg-learnsphere-purple transition;
+  }
+  .learnsphere-card {
+    @apply bg-white border border-learnsphere-blue/10 rounded-xl shadow-md p-6;
+  }
+}
